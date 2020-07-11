@@ -142,24 +142,25 @@ public class UnitImageFactory {
 
   private Optional<Image> getTransformedImage(
       final String baseImageName, final GamePlayer gamePlayer, final UnitType type) {
-    final Optional<URL> imageLocation = getBaseImageUrl(baseImageName, gamePlayer);
-    BufferedImage image = null;
-    if (imageLocation.isPresent()) {
-      image = ImageLoader.getImage(imageLocation.get());
-      if (needToTransformImage(gamePlayer, type, mapData)) {
-        final Optional<Color> unitColor = mapData.getUnitColor(gamePlayer.getName());
-        if (unitColor.isPresent()) {
-          final int brightness = mapData.getUnitBrightness(gamePlayer.getName());
-          ImageTransformer.colorize(unitColor.get(), brightness, image);
-        }
-        if (mapData.shouldFlipUnit(gamePlayer.getName())) {
-          image = ImageTransformer.flipHorizontally(image);
-        }
-      }
-    }
-    return Optional.ofNullable(image);
-  }
 
+    return getBaseImageUrl(baseImageName, gamePlayer)
+        .map(
+            imageLocation -> {
+              BufferedImage image = ImageLoader.getImage(imageLocation);
+              if (needToTransformImage(gamePlayer, type, mapData)) {
+                final Optional<Color> unitColor = mapData.getUnitColor(gamePlayer.getName());
+                if (unitColor.isPresent()) {
+                  final int brightness = mapData.getUnitBrightness(gamePlayer.getName());
+                  ImageTransformer.colorize(unitColor.get(), brightness, image);
+                }
+                if (mapData.shouldFlipUnit(gamePlayer.getName())) {
+                  image = ImageTransformer.flipHorizontally(image);
+                }
+              }
+              return image;
+            });
+  }
+  
   private static boolean needToTransformImage(
       final GamePlayer gamePlayer, final UnitType type, final MapData mapData) {
     return !mapData.ignoreTransformingUnit(type.getName())
