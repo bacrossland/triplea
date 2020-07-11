@@ -193,14 +193,13 @@ public class UnitImageFactory {
     if (icons.containsKey(fullName)) {
       return Optional.of(icons.get(fullName));
     }
-    final Optional<Image> image = getTransformedImage(baseName, player, type);
-    if (image.isEmpty()) {
-      return Optional.empty();
-    }
-
-    final ImageIcon icon = new ImageIcon(image.get());
-    icons.put(fullName, icon);
-    return Optional.of(icon);
+    
+    return getTransformedImage(baseName, player, type)
+        .map(ImageIcon::new)
+        .map(icon -> {
+          icons.put(fullName, icon);
+          return icon;
+        });
   }
 
   public static String getBaseImageName(
