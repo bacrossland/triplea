@@ -126,13 +126,6 @@ public class UnitImageFactory {
   }
 
   public Optional<URL> getBaseImageUrl(final String baseImageName, final GamePlayer gamePlayer) {
-    return getBaseImageUrl(baseImageName, gamePlayer, resourceLoader);
-  }
-
-  private static Optional<URL> getBaseImageUrl(
-      final String baseImageName,
-      final GamePlayer gamePlayer,
-      final ResourceLoader resourceLoader) {
     // URL uses '/' not '\'
     final String fileName = FILE_NAME_BASE + gamePlayer.getName() + "/" + baseImageName + ".png";
     final String fileName2 = FILE_NAME_BASE + baseImageName + ".png";
