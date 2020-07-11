@@ -135,12 +135,12 @@ public class UnitImageFactory {
   private Optional<Image> getTransformedImage(
       final String baseImageName, final GamePlayer gamePlayer, final UnitType type) {
     return getBaseImageUrl(baseImageName, gamePlayer)
-        .map(imageLocation -> getTransformedImage(imageLocation, gamePlayer, type));
+        .map(ImageLoader::getImage)
+        .map(image -> getTransformedImage(image, gamePlayer, type));
   }
 
   private Image getTransformedImage(
-      final URL imageLocation, final GamePlayer gamePlayer, final UnitType unitType) {
-    BufferedImage image = ImageLoader.getImage(imageLocation);
+      BufferedImage image, final GamePlayer gamePlayer, final UnitType unitType) {
     if (needToTransformImage(gamePlayer, unitType, mapData)) {
       final Optional<Color> unitColor = mapData.getUnitColor(gamePlayer.getName());
       if (unitColor.isPresent()) {
