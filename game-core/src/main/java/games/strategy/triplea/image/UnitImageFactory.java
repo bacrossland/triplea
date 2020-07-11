@@ -190,16 +190,14 @@ public class UnitImageFactory {
       final UnitType type, final GamePlayer player, final boolean damaged, final boolean disabled) {
     final String baseName = getBaseImageName(type, player, damaged, disabled);
     final String fullName = baseName + player.getName();
-    if (icons.containsKey(fullName)) {
-      return Optional.of(icons.get(fullName));
-    }
-    
-    return getTransformedImage(baseName, player, type)
-        .map(ImageIcon::new)
-        .map(icon -> {
-          icons.put(fullName, icon);
-          return icon;
-        });
+
+    return Optional.ofNullable(
+        icons.computeIfAbsent(
+            fullName,
+            pathName ->
+                getTransformedImage(baseName, player, type) //
+                    .map(ImageIcon::new)
+                    .orElse(null)));
   }
 
   public static String getBaseImageName(
