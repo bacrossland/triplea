@@ -249,14 +249,13 @@ public class ResourceLoader implements Closeable {
    *     resource. Do not use '\' or File.separator)
    * @param inputPath2 Same as inputPath but this takes second priority when loading
    */
-  public @Nullable URL getResource(final String inputPath, final String inputPath2) {
+  public Optional<URL> getResource(final String inputPath, final String inputPath2) {
     final String path = mapPrefix + inputPath;
     final String path2 = mapPrefix + inputPath2;
     return findResource(path)
         .or(() -> findResource(path2))
         .or(() -> findResource(inputPath))
-        .or(() -> findResource(inputPath2))
-        .orElse(null);
+        .or(() -> findResource(inputPath2));
   }
 
   private Optional<URL> findResource(final String searchPath) {

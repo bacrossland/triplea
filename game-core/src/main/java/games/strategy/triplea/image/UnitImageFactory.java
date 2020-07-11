@@ -136,13 +136,11 @@ public class UnitImageFactory {
     // URL uses '/' not '\'
     final String fileName = FILE_NAME_BASE + gamePlayer.getName() + "/" + baseImageName + ".png";
     final String fileName2 = FILE_NAME_BASE + baseImageName + ".png";
-    final URL url = resourceLoader.getResource(fileName, fileName2);
-    return Optional.ofNullable(url);
+    return resourceLoader.getResource(fileName, fileName2);
   }
 
   private Optional<Image> getTransformedImage(
       final String baseImageName, final GamePlayer gamePlayer, final UnitType type) {
-
     return getBaseImageUrl(baseImageName, gamePlayer)
         .map(imageLocation -> getTransformedImage(imageLocation, gamePlayer, type));
   }
