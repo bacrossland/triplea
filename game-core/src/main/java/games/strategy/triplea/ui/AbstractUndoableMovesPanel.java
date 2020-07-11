@@ -125,23 +125,23 @@ public abstract class AbstractUndoableMovesPanel extends JPanel {
     final Collection<UnitCategory> unitCategories = UnitSeparator.categorize(move.getUnits());
     final Dimension buttonSize = new Dimension(80, 22);
     for (final UnitCategory category : unitCategories) {
-      final Optional<ImageIcon> icon =
-          movePanel
-              .getMap()
-              .getUiContext()
-              .getUnitImageFactory()
-              .getIcon(
-                  category.getType(),
-                  category.getOwner(),
-                  category.hasDamageOrBombingUnitDamage(),
-                  category.getDisabled());
-      if (icon.isPresent()) {
-        final JLabel label =
-            new JLabel("x" + category.getUnits().size() + " ", icon.get(), SwingConstants.LEFT);
-        unitsBox.add(label);
-        MapUnitTooltipManager.setUnitTooltip(
-            label, category.getType(), category.getOwner(), category.getUnits().size());
-      }
+      movePanel
+          .getMap()
+          .getUiContext()
+          .getUnitImageFactory()
+          .getIcon(
+              category.getType(),
+              category.getOwner(),
+              category.hasDamageOrBombingUnitDamage(),
+              category.getDisabled())
+          .ifPresent(
+              icon -> {
+                final JLabel label =
+                    new JLabel("x" + category.getUnits().size() + " ", icon, SwingConstants.LEFT);
+                unitsBox.add(label);
+                MapUnitTooltipManager.setUnitTooltip(
+                    label, category.getType(), category.getOwner(), category.getUnits().size());
+              });
     }
     unitsBox.add(Box.createHorizontalGlue());
     final JLabel text = new JLabel(move.getMoveLabel());
