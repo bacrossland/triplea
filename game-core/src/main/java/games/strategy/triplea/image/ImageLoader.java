@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import javax.imageio.ImageIO;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -24,6 +25,14 @@ public final class ImageLoader {
       return ImageIO.read(path);
     } catch (final IOException e) {
       throw new RuntimeException("Unable to load image at path: " + path.getAbsolutePath(), e);
+    }
+  }
+
+  public static Image getImage(final URL url) {
+    try {
+      return ImageIO.read(url);
+    } catch (final IOException e) {
+      throw new RuntimeException("Unable to load image at path: " + url, e);
     }
   }
 }
