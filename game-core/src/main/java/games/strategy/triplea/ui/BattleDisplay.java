@@ -990,7 +990,7 @@ public class BattleDisplay extends JPanel {
     private GamePlayer player;
     private UnitType unitType;
     private int count;
-    private Optional<ImageIcon> icon;
+    private @Nullable ImageIcon icon;
 
     private TableData() {}
 
@@ -1004,7 +1004,7 @@ public class BattleDisplay extends JPanel {
       this.player = player;
       this.count = count;
       this.unitType = type;
-      icon = uiContext.getUnitImageFactory().getIcon(type, player, damaged, disabled);
+      icon = uiContext.getUnitImageFactory().getIcon(type, player, damaged, disabled).orElse(null);
     }
 
     void updateStamp(final JLabel stamp) {
@@ -1014,7 +1014,10 @@ public class BattleDisplay extends JPanel {
         stamp.setToolTipText(null);
       } else {
         stamp.setText("x" + count);
-        icon.ifPresent(stamp::setIcon);
+
+        if (icon != null) {
+          stamp.setIcon(icon);
+        }
         MapUnitTooltipManager.setUnitTooltip(stamp, unitType, player, count);
       }
     }
