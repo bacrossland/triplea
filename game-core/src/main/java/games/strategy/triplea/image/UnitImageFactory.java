@@ -148,7 +148,6 @@ public class UnitImageFactory {
     Image image = null;
     if (imageLocation.isPresent()) {
       image = ImageLoader.getImage(imageLocation.get());
-      Util.ensureImageLoaded(image);
       if (needToTransformImage(gamePlayer, type, mapData)) {
         image = convertToBufferedImage(image);
         final Optional<Color> unitColor = mapData.getUnitColor(gamePlayer.getName());
