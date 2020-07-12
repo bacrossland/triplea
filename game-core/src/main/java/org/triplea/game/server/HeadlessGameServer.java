@@ -1,14 +1,5 @@
 package org.triplea.game.server;
 
-import static games.strategy.engine.framework.CliProperties.LOBBY_GAME_COMMENTS;
-import static games.strategy.engine.framework.CliProperties.LOBBY_GAME_SUPPORT_PASSWORD;
-import static games.strategy.engine.framework.CliProperties.LOBBY_URI;
-import static games.strategy.engine.framework.CliProperties.MAP_FOLDER;
-import static games.strategy.engine.framework.CliProperties.TRIPLEA_GAME;
-import static games.strategy.engine.framework.CliProperties.TRIPLEA_NAME;
-import static games.strategy.engine.framework.CliProperties.TRIPLEA_PORT;
-import static games.strategy.engine.framework.CliProperties.TRIPLEA_SERVER;
-
 import com.google.common.base.Preconditions;
 import games.strategy.engine.ClientFileSystemHelper;
 import games.strategy.engine.chat.Chat;
@@ -31,6 +22,8 @@ import lombok.extern.java.Log;
 import org.triplea.game.startup.SetupModel;
 import org.triplea.java.Interruptibles;
 import org.triplea.util.ExitStatus;
+
+import static games.strategy.engine.framework.CliProperties.*;
 
 /** A way of hosting a game, but headless. */
 @Log
@@ -291,7 +284,9 @@ public class HeadlessGameServer {
    */
   public static void start(final String[] args) {
     ClientSetting.initialize();
-    System.setProperty(LOBBY_GAME_COMMENTS, BOT_GAME_HOST_COMMENT);
+    if (LOBBY_GAME_COMMENTS.equals("")) {
+      System.setProperty(LOBBY_GAME_COMMENTS, BOT_GAME_HOST_COMMENT);
+    }
     System.setProperty(GameRunner.TRIPLEA_HEADLESS, "true");
     System.setProperty(TRIPLEA_SERVER, "true");
 
@@ -337,14 +332,16 @@ public class HeadlessGameServer {
     }
 
     final String playerName = System.getProperty(TRIPLEA_NAME, "");
-    if ((playerName.length() < 7) || !playerName.startsWith(BOT_GAME_HOST_NAME_PREFIX)) {
-      log.warning(
-          "Invalid or missing argument: "
-              + TRIPLEA_NAME
-              + " must at least 7 characters long "
-              + "and start with "
-              + BOT_GAME_HOST_NAME_PREFIX);
-      printUsage = true;
+    if (System.getProperty(SERVER_PASSWORD, "").equals("")) {
+      if ((playerName.length() < 7) || !playerName.startsWith(BOT_GAME_HOST_NAME_PREFIX)) {
+        log.warning(
+                "Invalid or missing argument: "
+                        + TRIPLEA_NAME
+                        + " must at least 7 characters long "
+                        + "and start with "
+                        + BOT_GAME_HOST_NAME_PREFIX);
+        printUsage = true;
+      }
     }
 
     if (isInvalidPortNumber(System.getProperty(TRIPLEA_PORT, "0"))) {
