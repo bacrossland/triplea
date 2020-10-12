@@ -30,7 +30,7 @@ cd lobby-db/
 Assuming docker is installed and a mac or linux system, first start database:
 ```
 cd triplea/database/
-./start-database
+./start_docker_db
 ```
 
 Next run verify script:

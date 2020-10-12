@@ -14,7 +14,7 @@
   - *Lombok*
 
 ### Settings
-  - *File > Import Settings*
+  - *File > Manage IDE Settings > Import Settings*
   - Select file: [.ide-intellij/intellij-settings.zip
    ](https://github.com/triplea-game/triplea/blob/master/.ide-intellij/intellij-settings.zip)
 
