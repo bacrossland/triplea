@@ -330,14 +330,18 @@ class AaInMoveUtil implements Serializable {
             allFriendlyUnits,
             defendingAa,
             allEnemyUnits,
+            "Select "
+                + dice.getHits()
+                + " casualties from "
+                + currentTypeAa
+                + " fire in "
+                + territory.getName(),
             dice,
             bridge,
             player,
             null,
             territory,
-            TerritoryEffectHelper.getEffects(territory),
-            false,
-            new ArrayList<>());
+            TerritoryEffectHelper.getEffects(territory));
     bridge
         .getRemotePlayer(player)
         .reportMessage(

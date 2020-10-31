@@ -1,13 +1,20 @@
 package games.strategy.triplea.delegate.battle;
 
+import static games.strategy.triplea.delegate.battle.BattleState.Side.OFFENSE;
+import static games.strategy.triplea.delegate.battle.steps.MockGameData.givenGameData;
 import static org.mockito.Mockito.mock;
 
 import games.strategy.engine.data.GameData;
 import games.strategy.engine.data.GamePlayer;
 import games.strategy.engine.data.Territory;
+import games.strategy.engine.data.TerritoryEffect;
 import games.strategy.engine.data.Unit;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
@@ -21,49 +28,50 @@ import lombok.NonNull;
 @Builder
 public class FakeBattleState implements BattleState {
 
-  @Getter(onMethod = @__({@Override}))
   final int battleRound;
+
+  final int maxBattleRounds;
+
+  @Getter(onMethod = @__({@Override}))
+  final UUID battleId;
 
   @Getter(onMethod = @__({@Override}))
   final @NonNull Territory battleSite;
 
   @Getter(onMethod = @__({@Override}))
+  final @NonNull Collection<TerritoryEffect> territoryEffects;
+
   final @NonNull GamePlayer attacker;
 
-  @Getter(onMethod = @__({@Override}))
   final @NonNull GamePlayer defender;
 
-  @Getter(onMethod = @__({@Override}))
   final @NonNull Collection<Unit> attackingUnits;
 
-  @Getter(onMethod = @__({@Override}))
   final @NonNull Collection<Unit> attackingWaitingToDie;
 
-  @Getter(onMethod = @__({@Override}))
   final @NonNull Collection<Unit> defendingUnits;
 
-  @Getter(onMethod = @__({@Override}))
   final @NonNull Collection<Unit> defendingWaitingToDie;
 
-  @Getter(onMethod = @__({@Override}))
   final @NonNull Collection<Unit> offensiveAa;
 
-  @Getter(onMethod = @__({@Override}))
   final @NonNull Collection<Unit> defendingAa;
+
+  final @NonNull Collection<Unit> killed;
+
+  final @NonNull Collection<Unit> retreatUnits;
 
   @Getter(onMethod = @__({@Override}))
   final @NonNull GameData gameData;
 
-  @Getter(onMethod = @__({@Override}))
   final boolean amphibious;
 
-  @Getter(onMethod = @__({@Override}))
   final boolean over;
+
+  final boolean headless;
 
   @Getter(onMethod = @__({@Override}))
   final Collection<Territory> attackerRetreatTerritories;
-
-  final Collection<Territory> emptyOrFriendlySeaNeighbors;
 
   final Collection<Unit> dependentUnits;
 
@@ -71,19 +79,139 @@ public class FakeBattleState implements BattleState {
   final @NonNull Collection<Unit> bombardingUnits;
 
   @Override
-  public Collection<Territory> getEmptyOrFriendlySeaNeighbors(final Collection<Unit> units) {
-    return emptyOrFriendlySeaNeighbors;
+  public Collection<Unit> getDependentUnits(final Collection<Unit> units) {
+    return dependentUnits;
   }
 
   @Override
-  public Collection<Unit> getDependentUnits(final Collection<Unit> units) {
-    return dependentUnits;
+  public Collection<Unit> getTransportDependents(final Collection<Unit> units) {
+    return new ArrayList<>();
+  }
+
+  @Override
+  public void removeDependentUnits(final Collection<Unit> units) {
+    // use verify() to check if this method is called
+  }
+
+  @Override
+  public Collection<IBattle> getDependentBattles() {
+    return new ArrayList<>();
+  }
+
+  @Override
+  public BattleStatus getStatus() {
+    return BattleStatus.of(battleRound, maxBattleRounds, over, amphibious, headless);
+  }
+
+  @Override
+  public GamePlayer getPlayer(final Side side) {
+    return side == OFFENSE ? attacker : defender;
+  }
+
+  @Override
+  public Collection<Unit> filterUnits(final UnitBattleFilter filter, final Side... sides) {
+    return filter.getFilter().stream()
+        .flatMap(status -> getUnits(status, sides).stream())
+        .collect(Collectors.toList());
+  }
+
+  private Collection<Unit> getUnits(final UnitBattleStatus status, final Side... sides) {
+    switch (status) {
+      case ALIVE:
+        return Collections.unmodifiableCollection(getUnits(sides));
+      case CASUALTY:
+        return Collections.unmodifiableCollection(getWaitingToDie(sides));
+      case REMOVED_CASUALTY:
+        return Collections.unmodifiableCollection(killed);
+      default:
+        return List.of();
+    }
+  }
+
+  private Collection<Unit> getUnits(final Side... sides) {
+    final Collection<Unit> units = new ArrayList<>();
+    for (final Side side : sides) {
+      switch (side) {
+        case OFFENSE:
+          units.addAll(attackingUnits);
+          break;
+        case DEFENSE:
+          units.addAll(defendingUnits);
+          break;
+        default:
+          break;
+      }
+    }
+    return units;
+  }
+
+  private Collection<Unit> getWaitingToDie(final Side... sides) {
+    final Collection<Unit> waitingToDie = new ArrayList<>();
+    for (final Side side : sides) {
+      switch (side) {
+        case OFFENSE:
+          waitingToDie.addAll(attackingWaitingToDie);
+          break;
+        case DEFENSE:
+          waitingToDie.addAll(defendingWaitingToDie);
+          break;
+        default:
+          break;
+      }
+    }
+    return waitingToDie;
+  }
+
+  @Override
+  public void clearWaitingToDie(final Side... sides) {
+    for (final Side side : sides) {
+      switch (side) {
+        case OFFENSE:
+          attackingWaitingToDie.clear();
+          break;
+        case DEFENSE:
+          defendingWaitingToDie.clear();
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  @Override
+  public void retreatUnits(final Side side, final Collection<Unit> units) {
+    retreatUnits.addAll(units);
+  }
+
+  @Override
+  public Collection<Unit> getAa(final Side... sides) {
+    final Collection<Unit> units = new ArrayList<>();
+    for (final Side side : sides) {
+      switch (side) {
+        case OFFENSE:
+          units.addAll(offensiveAa);
+          break;
+        case DEFENSE:
+          units.addAll(defendingAa);
+          break;
+        default:
+          break;
+      }
+    }
+    return units;
+  }
+
+  @Override
+  public List<String> getStepStrings() {
+    return List.of();
   }
 
   public static FakeBattleState.FakeBattleStateBuilder givenBattleStateBuilder() {
     return FakeBattleState.builder()
         .battleRound(2)
+        .maxBattleRounds(-1)
         .battleSite(mock(Territory.class))
+        .territoryEffects(List.of())
         .attackingUnits(List.of())
         .defendingUnits(List.of())
         .attackingWaitingToDie(List.of())
@@ -94,10 +222,11 @@ public class FakeBattleState implements BattleState {
         .defendingAa(List.of())
         .bombardingUnits(List.of())
         .dependentUnits(List.of())
-        .gameData(mock(GameData.class))
+        .killed(List.of())
+        .retreatUnits(new ArrayList<>())
+        .gameData(givenGameData().build())
         .amphibious(false)
         .over(false)
-        .attackerRetreatTerritories(List.of())
-        .emptyOrFriendlySeaNeighbors(List.of());
+        .attackerRetreatTerritories(List.of());
   }
 }

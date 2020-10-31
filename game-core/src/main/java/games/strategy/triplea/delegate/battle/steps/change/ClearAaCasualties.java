@@ -1,5 +1,8 @@
 package games.strategy.triplea.delegate.battle.steps.change;
 
+import static games.strategy.triplea.delegate.battle.BattleState.Side.DEFENSE;
+import static games.strategy.triplea.delegate.battle.BattleState.Side.OFFENSE;
+
 import games.strategy.engine.delegate.IDelegateBridge;
 import games.strategy.triplea.delegate.ExecutionStack;
 import games.strategy.triplea.delegate.battle.BattleActions;
@@ -18,7 +21,7 @@ public class ClearAaCasualties implements BattleStep {
 
   @Override
   public List<String> getNames() {
-    return null;
+    return List.of();
   }
 
   @Override
@@ -28,7 +31,7 @@ public class ClearAaCasualties implements BattleStep {
 
   @Override
   public void execute(final ExecutionStack stack, final IDelegateBridge bridge) {
-    if (!battleState.getOffensiveAa().isEmpty() || !battleState.getDefendingAa().isEmpty()) {
+    if (!battleState.getAa(OFFENSE).isEmpty() || !battleState.getAa(DEFENSE).isEmpty()) {
       battleActions.clearWaitingToDieAndDamagedChangesInto(bridge);
     }
   }

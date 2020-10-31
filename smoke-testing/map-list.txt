@@ -203,7 +203,6 @@ https://raw.githubusercontent.com/triplea-maps/ultimate_world_variants/master/ma
 https://raw.githubusercontent.com/triplea-maps/ur_quan_war_masters_edition/master/map/games/UrQuanWarMastersEdition.xml
 https://raw.githubusercontent.com/triplea-maps/warcraft_war_heroes/master/map/games/warcraft_war_heroes.xml
 https://raw.githubusercontent.com/triplea-maps/war_of_the_lance/master/map/games/War_of_the_Lance.xml
-https://raw.githubusercontent.com/triplea-maps/war_of_the_relics/master/map/games/war_of_the_relics.xml
 https://raw.githubusercontent.com/triplea-maps/world_at_war/master/map/games/WAW40.xml
 https://raw.githubusercontent.com/triplea-maps/world_at_war/master/map/games/World_At_War.xml
 https://raw.githubusercontent.com/triplea-maps/world_at_war_variants/master/map/games/World_at_War_Variant_-_FUEL-AA-Range.xml
@@ -224,6 +223,9 @@ https://raw.githubusercontent.com/triplea-maps/world_war_ii_global/master/map/ga
 https://raw.githubusercontent.com/triplea-maps/world_war_ii_global/master/map/games/ww2global40_balanced_move1st.xml
 https://raw.githubusercontent.com/triplea-maps/world_war_ii_global/master/map/games/ww2global40.xml
 https://raw.githubusercontent.com/triplea-maps/world_war_ii_global/master/map/games/ww2global42_2nd_edition.xml
+https://raw.githubusercontent.com/triplea-maps/world_war_ii_pacific/master/map/games/ww2pac40_2nd_edition.xml
+https://raw.githubusercontent.com/triplea-maps/world_war_ii_pacific/master/map/games/ww2pac40_balanced_veqryn.xml
+https://raw.githubusercontent.com/triplea-maps/world_war_ii_pacific/master/map/games/ww2pac40.xml
 https://raw.githubusercontent.com/triplea-maps/world_war_ii_revised/master/map/games/lhtr.xml
 https://raw.githubusercontent.com/triplea-maps/world_war_ii_revised/master/map/games/ww2v2.xml
 https://raw.githubusercontent.com/triplea-maps/world_war_ii_revised_variations/master/map/games/barbarossa.xml

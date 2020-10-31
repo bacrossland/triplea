@@ -8,6 +8,7 @@ import static org.hamcrest.core.Is.is;
 
 import games.strategy.engine.data.GameData;
 import games.strategy.engine.data.GamePlayer;
+import games.strategy.engine.data.MutableProperty;
 import games.strategy.engine.data.Territory;
 import games.strategy.engine.data.Unit;
 import games.strategy.engine.data.UnitType;
@@ -131,14 +132,9 @@ class CasualtyOrderOfLossesTestOnGlobal {
     return CasualtyOrderOfLosses.Parameters.builder()
         .targetsToPickFrom(units)
         .combatModifiers(
-            CombatModifiers.builder()
-                .defending(false)
-                .amphibious(false)
-                .territoryEffects(List.of())
-                .build())
+            CombatModifiers.builder().defending(false).territoryEffects(List.of()).build())
         .player(BRITISH)
         .enemyUnits(List.of())
-        .amphibiousLandAttackers(List.of())
         .battlesite(FRANCE)
         .costs(COST_MAP)
         .data(data)
@@ -204,17 +200,24 @@ class CasualtyOrderOfLossesTestOnGlobal {
   }
 
   private CasualtyOrderOfLosses.Parameters amphibAssault(final Collection<Unit> amphibUnits) {
+    amphibUnits.forEach(
+        unit -> {
+          unit.getProperty(Unit.UNLOADED_AMPHIBIOUS)
+              .ifPresent(
+                  property -> {
+                    try {
+                      property.setValue(true);
+                    } catch (final MutableProperty.InvalidValueException e) {
+                      // should not happen
+                    }
+                  });
+        });
     return CasualtyOrderOfLosses.Parameters.builder()
         .targetsToPickFrom(amphibUnits)
         .combatModifiers(
-            CombatModifiers.builder()
-                .defending(false)
-                .amphibious(true)
-                .territoryEffects(List.of())
-                .build())
+            CombatModifiers.builder().defending(false).territoryEffects(List.of()).build())
         .player(BRITISH)
         .enemyUnits(List.of())
-        .amphibiousLandAttackers(amphibUnits)
         .battlesite(FRANCE)
         .costs(COST_MAP)
         .data(data)
@@ -292,14 +295,9 @@ class CasualtyOrderOfLossesTestOnGlobal {
     return CasualtyOrderOfLosses.Parameters.builder()
         .targetsToPickFrom(units)
         .combatModifiers(
-            CombatModifiers.builder()
-                .defending(true)
-                .territoryEffects(List.of())
-                .amphibious(false)
-                .build())
+            CombatModifiers.builder().defending(true).territoryEffects(List.of()).build())
         .player(BRITISH)
-        .enemyUnits(List.of()) // << TODO: remove this parameter should not matter
-        .amphibiousLandAttackers(List.of())
+        .enemyUnits(List.of())
         .battlesite(FRANCE)
         .costs(COST_MAP)
         .data(data)

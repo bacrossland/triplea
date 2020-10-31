@@ -26,6 +26,7 @@ import games.strategy.engine.framework.startup.launcher.LaunchAction;
 import games.strategy.engine.framework.startup.login.ClientLogin;
 import games.strategy.engine.framework.startup.ui.ClientOptions;
 import games.strategy.engine.framework.startup.ui.PlayerType;
+import games.strategy.engine.framework.startup.ui.panels.main.SetupPanelModel;
 import games.strategy.engine.framework.startup.ui.panels.main.game.selector.GameSelectorModel;
 import games.strategy.engine.framework.ui.background.WaitWindow;
 import games.strategy.engine.message.RemoteName;
@@ -40,7 +41,7 @@ import games.strategy.triplea.UrlConstants;
 import games.strategy.triplea.settings.ClientSetting;
 import java.awt.Component;
 import java.awt.Frame;
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,7 +60,6 @@ import javax.swing.SwingUtilities;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.java.Log;
-import org.triplea.io.IoUtils;
 import org.triplea.java.Interruptibles;
 import org.triplea.java.concurrency.AsyncRunner;
 import org.triplea.swing.EventThreadJOptionPane;
@@ -144,7 +144,7 @@ public class ClientModel implements IMessengerErrorListener {
         }
       };
 
-  ClientModel(
+  public ClientModel(
       final GameSelectorModel gameSelectorModel,
       final SetupPanelModel typePanelModel,
       final LaunchAction launchAction) {
@@ -205,7 +205,12 @@ public class ClientModel implements IMessengerErrorListener {
     return result.result.orElse(null);
   }
 
-  boolean createClientMessenger(final Component ui) {
+  /**
+   * Factory method to create and connect a client messenger to server, returns false if not
+   * connected (user messaging will be handled by this method). Method returns true if successfully
+   * connected.
+   */
+  public boolean createClientMessenger(final Component ui) {
     this.ui = JOptionPane.getFrameForComponent(ui);
     gameDataOnStartup = gameSelectorModel.getGameData();
     gameSelectorModel.setCanSelect(false);
@@ -326,13 +331,9 @@ public class ClientModel implements IMessengerErrorListener {
 
   private void startGameInNewThread(
       final byte[] gameData, final Map<String, INode> players, final boolean gameRunning) {
-    final GameData data;
-    try {
-      // this normally takes a couple seconds, but can take up to 60 seconds for a freaking huge
-      // game
-      data = IoUtils.readFromMemory(gameData, GameDataManager::loadGame);
-    } catch (final IOException ex) {
-      log.log(Level.SEVERE, "Failed to load game", ex);
+    // this normally takes a couple seconds, but can take up to 60 seconds for a huge game
+    final GameData data = GameDataManager.loadGame(new ByteArrayInputStream(gameData)).orElse(null);
+    if (data == null) {
       return;
     }
     objectStreamFactory.setData(data);

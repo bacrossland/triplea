@@ -2,6 +2,7 @@ package games.strategy.triplea.odds.calculator;
 
 import games.strategy.engine.data.GameData;
 import games.strategy.engine.data.GamePlayer;
+import games.strategy.engine.data.MutableProperty;
 import games.strategy.engine.data.Territory;
 import games.strategy.engine.data.TerritoryEffect;
 import games.strategy.engine.data.Unit;
@@ -9,12 +10,12 @@ import games.strategy.engine.data.UnitType;
 import games.strategy.engine.framework.ui.background.WaitDialog;
 import games.strategy.engine.history.History;
 import games.strategy.triplea.Properties;
-import games.strategy.triplea.delegate.DiceRoll;
 import games.strategy.triplea.delegate.Matches;
 import games.strategy.triplea.delegate.TerritoryEffectHelper;
 import games.strategy.triplea.delegate.battle.BattleDelegate;
 import games.strategy.triplea.delegate.battle.UnitBattleComparator;
 import games.strategy.triplea.delegate.battle.casualty.CasualtyUtil;
+import games.strategy.triplea.delegate.power.calculator.TotalPowerAndTotalRolls;
 import games.strategy.triplea.settings.ClientSetting;
 import games.strategy.triplea.ui.UiContext;
 import games.strategy.triplea.util.TuvUtils;
@@ -1020,7 +1021,7 @@ class BattleCalculatorPanel extends JPanel {
                   Matches.unitIsOwnedBy(getDefender())
                       .and(
                           Matches.unitCanBeInBattle(
-                              true, isLand(), 1, hasMaxRounds(isLand(), data), true)));
+                              true, isLand(), 1, hasMaxRounds(isLand(), data), true, List.of())));
           final List<Unit> newDefenders =
               CollectionUtils.getMatches(
                   attackingUnitsPanel.getUnits(),
@@ -1335,7 +1336,8 @@ class BattleCalculatorPanel extends JPanel {
         getAttacker(),
         CollectionUtils.getMatches(
             units,
-            Matches.unitCanBeInBattle(true, isLand(), 1, hasMaxRounds(isLand(), data), false)),
+            Matches.unitCanBeInBattle(
+                true, isLand(), 1, hasMaxRounds(isLand(), data), false, List.of())),
         isLand());
   }
 
@@ -1418,32 +1420,32 @@ class BattleCalculatorPanel extends JPanel {
       final IntegerMap<UnitType> costs = TuvUtils.getCostsForTuv(getAttacker(), data);
       attackers.sort(new UnitBattleComparator(false, costs, territoryEffects, data).reversed());
       final Territory location = findPotentialBattleSite();
+      if (isAmphibiousBattle()) {
+        attackers.stream()
+            .filter(Matches.unitIsLand())
+            .forEach(
+                unit -> {
+                  final Optional<MutableProperty<?>> property =
+                      unit.getProperty(Unit.UNLOADED_AMPHIBIOUS);
+                  if (property.isPresent()) {
+                    try {
+                      property.get().setValue(true);
+                    } catch (final MutableProperty.InvalidValueException e) {
+                      // ignore units that can't be unloaded
+                    }
+                  }
+                });
+      }
       final int attackPower =
-          DiceRoll.getTotalPower(
-              DiceRoll.getUnitPowerAndRollsForNormalBattles(
-                  attackers,
-                  defenders,
-                  attackers,
-                  false,
-                  data,
-                  location,
-                  territoryEffects,
-                  isAmphibiousBattle(),
-                  attackers),
+          TotalPowerAndTotalRolls.getTotalPower(
+              TotalPowerAndTotalRolls.getUnitPowerAndRollsForNormalBattles(
+                  attackers, defenders, attackers, false, data, location, territoryEffects),
               data);
       // defender is never amphibious
       final int defensePower =
-          DiceRoll.getTotalPower(
-              DiceRoll.getUnitPowerAndRollsForNormalBattles(
-                  defenders,
-                  attackers,
-                  defenders,
-                  true,
-                  data,
-                  location,
-                  territoryEffects,
-                  false,
-                  new ArrayList<>()),
+          TotalPowerAndTotalRolls.getTotalPower(
+              TotalPowerAndTotalRolls.getUnitPowerAndRollsForNormalBattles(
+                  defenders, attackers, defenders, true, data, location, territoryEffects),
               data);
       attackerUnitsTotalPower.setText("Power: " + attackPower);
       defenderUnitsTotalPower.setText("Power: " + defensePower);

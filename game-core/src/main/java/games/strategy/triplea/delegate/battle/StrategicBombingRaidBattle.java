@@ -70,7 +70,7 @@ public class StrategicBombingRaidBattle extends AbstractBattle implements Battle
       final GameData data,
       final GamePlayer attacker,
       final BattleTracker battleTracker) {
-    super(battleSite, attacker, battleTracker, true, BattleType.BOMBING_RAID, data);
+    super(battleSite, attacker, battleTracker, BattleType.BOMBING_RAID, data);
     isAmphibious = false;
     updateDefendingUnits();
   }
@@ -422,7 +422,7 @@ public class StrategicBombingRaidBattle extends AbstractBattle implements Battle
             Map.of(),
             attacker,
             defender,
-            isAmphibious(),
+            false,
             getBattleType(),
             Set.of());
     bridge.getDisplayChannelBroadcaster().listBattleSteps(battleId, steps);
@@ -589,8 +589,6 @@ public class StrategicBombingRaidBattle extends AbstractBattle implements Battle
           validAttackingUnitsForThisRoll,
           attackingUnits,
           defendingUnits,
-          isAmphibious,
-          amphibiousLandAttackers,
           battleSite,
           territoryEffects,
           bridge,
@@ -609,14 +607,13 @@ public class StrategicBombingRaidBattle extends AbstractBattle implements Battle
             attackingUnits,
             defendingAa,
             defendingUnits,
+            "Hits from " + currentTypeAa + ", ",
             dice,
             bridge,
             attacker,
             battleId,
             battleSite,
-            territoryEffects,
-            isAmphibious,
-            amphibiousLandAttackers);
+            territoryEffects);
     final int totalExpectingHits = Math.min(dice.getHits(), validAttackingUnitsForThisRoll.size());
     if (casualties.size() != totalExpectingHits) {
       throw new IllegalStateException(

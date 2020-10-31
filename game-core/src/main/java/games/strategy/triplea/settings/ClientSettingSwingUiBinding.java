@@ -222,6 +222,17 @@ enum ClientSettingSwingUiBinding implements GameSettingUiBinding<JComponent> {
     }
   },
 
+  SAVE_GAME_COMPATIBILITY_CHECK_BINDING(
+      "Check save games for compatibility",
+      SettingType.TESTING,
+      "If toggled to false, the engine will attempt to load any save game regardless"
+          + "of version.") {
+    @Override
+    public SelectionComponent<JComponent> newSelectionComponent() {
+      return booleanRadioButtons(ClientSetting.saveGameCompatibilityCheck);
+    }
+  },
+
   SHOW_BETA_FEATURES_BINDING(
       "Show Beta Features",
       SettingType.TESTING,
@@ -231,6 +242,16 @@ enum ClientSettingSwingUiBinding implements GameSettingUiBinding<JComponent> {
     @Override
     public SelectionComponent<JComponent> newSelectionComponent() {
       return booleanRadioButtons(ClientSetting.showBetaFeatures);
+    }
+  },
+
+  USE_MAPS_SERVER_BETA_FEATURE(
+      "Use Maps Server (Beta)",
+      SettingType.TESTING,
+      "Toggles whether to use the in 'beta' map server") {
+    @Override
+    public SelectionComponent<JComponent> newSelectionComponent() {
+      return booleanRadioButtons(ClientSetting.useMapsServerBetaFeature);
     }
   },
 

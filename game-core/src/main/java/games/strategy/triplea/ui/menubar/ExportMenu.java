@@ -53,6 +53,8 @@ import javax.swing.WindowConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import lombok.extern.java.Log;
+import org.triplea.map.data.elements.Game;
+import org.triplea.map.xml.writer.GameXmlWriter;
 import org.triplea.swing.JMenuItemBuilder;
 import org.triplea.swing.key.binding.KeyCode;
 import org.triplea.util.FileNameUtils;
@@ -108,20 +110,12 @@ final class ExportMenu extends JMenu {
     if (chooser.showSaveDialog(frame) != JOptionPane.OK_OPTION) {
       return;
     }
-    final String xmlFile;
     try {
       gameData.acquireReadLock();
-      final GameDataExporter exporter = new GameDataExporter(gameData);
-      xmlFile = exporter.getXml();
+      final Game xmlGameModel = GameDataExporter.convertToXmlModel(gameData);
+      GameXmlWriter.exportXml(xmlGameModel, chooser.getSelectedFile().toPath());
     } finally {
       gameData.releaseReadLock();
-    }
-    try (Writer writer =
-        Files.newBufferedWriter(chooser.getSelectedFile().toPath(), StandardCharsets.UTF_8)) {
-      writer.write(xmlFile);
-    } catch (final IOException e1) {
-      log.log(
-          Level.SEVERE, "Failed to write XML: " + chooser.getSelectedFile().getAbsolutePath(), e1);
     }
   }
 
@@ -177,7 +171,10 @@ final class ExportMenu extends JMenu {
     try (PrintWriter writer =
         new PrintWriter(chooser.getSelectedFile(), StandardCharsets.UTF_8.toString())) {
       gameData.acquireReadLock();
-      final GameData clone = GameDataUtils.cloneGameData(gameData);
+      final GameData clone = GameDataUtils.cloneGameData(gameData).orElse(null);
+      if (clone == null) {
+        return;
+      }
       writer.append(defaultFileName).println(',');
       writer.append("TripleA Engine Version: ,");
       writer.append(ClientContext.engineVersion().toString()).println(',');
@@ -411,7 +408,10 @@ final class ExportMenu extends JMenu {
     final GameData clonedGameData;
     gameData.acquireReadLock();
     try {
-      clonedGameData = GameDataUtils.cloneGameData(gameData);
+      clonedGameData = GameDataUtils.cloneGameData(gameData).orElse(null);
+      if (clonedGameData == null) {
+        return;
+      }
     } finally {
       gameData.releaseReadLock();
     }

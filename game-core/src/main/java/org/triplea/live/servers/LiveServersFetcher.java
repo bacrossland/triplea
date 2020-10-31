@@ -8,10 +8,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.logging.Level;
 import lombok.AllArgsConstructor;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.triplea.java.function.ThrowingSupplier;
+import org.triplea.swing.SwingComponents;
 import org.triplea.util.Version;
 
 /**
@@ -19,7 +19,7 @@ import org.triplea.util.Version;
  * LiveServers} can be used to determine the latest TripleA version and the address of any lobbies
  * that can be connected to.
  */
-@Log
+@Slf4j
 @AllArgsConstructor(onConstructor_ = @VisibleForTesting)
 public class LiveServersFetcher {
   private final Function<LiveServers, ServerProperties> currentVersionSelector;
@@ -39,11 +39,34 @@ public class LiveServersFetcher {
             .build());
   }
 
+  /**
+   * Fetches from online configuration server properties. The online configuration is a fixed
+   * configuration file at a known URI. The server properties lists which lobbies are available for
+   * which game versions.
+   */
+  public static Optional<ServerProperties> fetch() {
+    final ServerProperties serverProperties = new LiveServersFetcher().serverForCurrentVersion();
+    if (serverProperties.isInactive()) {
+      SwingComponents.showDialogWithLinks(
+          SwingComponents.DialogWithLinksParams.builder()
+              .title("Lobby Not Available")
+              .dialogText(
+                  String.format(
+                      "Your version of TripleA is out of date, please download the latest:"
+                          + "<br><a href=\"%s\">%s</a>",
+                      UrlConstants.DOWNLOAD_WEBSITE, UrlConstants.DOWNLOAD_WEBSITE))
+              .dialogType(SwingComponents.DialogWithLinksTypes.ERROR)
+              .build());
+      return Optional.empty();
+    }
+    return Optional.of(serverProperties);
+  }
+
   public Optional<Version> latestVersion() {
     try {
       return Optional.of(liveServersFetcher.get().getLatestEngineVersion());
     } catch (final IOException e) {
-      log.log(Level.INFO, "(No network connection?) Failed to get server properties", e);
+      log.info("(No network connection?) Failed to get server properties", e);
       return Optional.empty();
     }
   }
@@ -67,13 +90,20 @@ public class LiveServersFetcher {
   }
 
   public Optional<URI> lobbyUriForCurrentVersion() {
+    return fetchServerProperties().map(ServerProperties::getUri);
+  }
+
+  private Optional<ServerProperties> fetchServerProperties() {
     try {
       final var liveServers = liveServersFetcher.get();
-      final var serverProperties = currentVersionSelector.apply(liveServers);
-      return Optional.ofNullable(serverProperties.getUri());
+      return Optional.of(currentVersionSelector.apply(liveServers));
     } catch (final IOException e) {
-      log.log(Level.INFO, "(No network connection?) Failed to get server properties", e);
+      log.warn("(No network connection?) Failed to get server locations", e);
       return Optional.empty();
     }
+  }
+
+  public Optional<URI> getMapsServerUri() {
+    return fetchServerProperties().map(ServerProperties::getMapsServerUri);
   }
 }

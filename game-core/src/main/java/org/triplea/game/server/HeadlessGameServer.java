@@ -9,14 +9,15 @@ import games.strategy.engine.framework.ArgParser;
 import games.strategy.engine.framework.GameDataManager;
 import games.strategy.engine.framework.GameRunner;
 import games.strategy.engine.framework.ServerGame;
+import games.strategy.engine.framework.map.file.system.loader.AvailableGamesFileSystemReader;
+import games.strategy.engine.framework.map.file.system.loader.AvailableGamesList;
 import games.strategy.engine.framework.startup.mc.ServerModel;
 import games.strategy.engine.framework.startup.ui.panels.main.game.selector.GameSelectorModel;
 import games.strategy.triplea.settings.ClientSetting;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
 import java.util.logging.Level;
 import lombok.extern.java.Log;
 import org.triplea.game.startup.SetupModel;
@@ -32,7 +33,7 @@ public class HeadlessGameServer {
   public static final String BOT_GAME_HOST_NAME_PREFIX = "Bot";
   private static HeadlessGameServer instance = null;
 
-  private final AvailableGames availableGames = new AvailableGames();
+  private final AvailableGamesList availableGames = AvailableGamesFileSystemReader.parseMapFiles();
   private final GameSelectorModel gameSelectorModel = new GameSelectorModel();
   private final HeadlessServerSetupPanelModel setupPanelModel =
       new HeadlessServerSetupPanelModel(gameSelectorModel);
@@ -78,16 +79,15 @@ public class HeadlessGameServer {
         || Boolean.parseBoolean(System.getProperty(GameRunner.TRIPLEA_HEADLESS, "false"));
   }
 
-  public Set<String> getAvailableGames() {
-    return availableGames.getGameNames();
+  public Collection<String> getAvailableGames() {
+    return availableGames.getSortedGameList();
   }
 
   public synchronized void setGameMapTo(final String gameName) {
     log.info("Requested to change map to: " + gameName);
     // don't change mid-game and only if we have the game
     if (setupPanelModel.getPanel() != null && game == null && availableGames.hasGame(gameName)) {
-      gameSelectorModel.load(
-          availableGames.getGameData(gameName), availableGames.getGameFilePath(gameName));
+      gameSelectorModel.load(availableGames.findGameUriByName(gameName).orElseThrow());
       log.info("Changed to game map: " + gameName);
     } else {
       log.info(
@@ -107,13 +107,8 @@ public class HeadlessGameServer {
     Preconditions.checkArgument(
         file.exists(), "File must exist to load it: " + file.getAbsolutePath());
     // don't change mid-game
-    if (setupPanelModel.getPanel() != null && game == null) {
-      try {
-        gameSelectorModel.load(file);
-        log.info("Changed to save: " + file.getName());
-      } catch (final Exception e) {
-        log.log(Level.SEVERE, "Error loading game file: " + file.getAbsolutePath(), e);
-      }
+    if (setupPanelModel.getPanel() != null && game == null && gameSelectorModel.load(file)) {
+      log.info("Changed to save: " + file.getName());
     }
   }
 
@@ -121,15 +116,13 @@ public class HeadlessGameServer {
    * Loads a save game from the specified stream.
    *
    * @param input The stream containing the save game.
-   * @param fileName The label used to identify the save game in the UI. Typically the file name of
-   *     the save game on the remote client that requested the save game to be loaded.
    */
-  public synchronized void loadGameSave(final InputStream input, final String fileName) {
+  public synchronized void loadGameSave(final InputStream input) {
     // don't change mid-game
     if (setupPanelModel.getPanel() != null && game == null) {
-      getGameData(input)
+      GameDataManager.loadGame(input)
           .filter(this::checkGameIsAvailableOnServer)
-          .ifPresent(data -> gameSelectorModel.load(data, fileName));
+          .ifPresent(gameSelectorModel::setGameData);
     }
   }
 
@@ -139,15 +132,6 @@ public class HeadlessGameServer {
     } else {
       log.warning("Game is not installed on this server: " + gameData.getGameName());
       return false;
-    }
-  }
-
-  public Optional<GameData> getGameData(final InputStream input) {
-    try {
-      return Optional.of(GameDataManager.loadGame(input));
-    } catch (final IOException e) {
-      log.log(Level.SEVERE, "Failed to load game", e);
-      return Optional.empty();
     }
   }
 

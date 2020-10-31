@@ -6,7 +6,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicates;
 import games.strategy.triplea.delegate.Matches;
-import games.strategy.triplea.delegate.move.validation.MoveValidator;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,8 +18,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import javax.annotation.Nullable;
+import org.triplea.java.RemoveOnNextMajorRelease;
 import org.triplea.java.collections.IntegerMap;
 
 /**
@@ -35,36 +34,19 @@ public class GameMap extends GameDataComponent implements Iterable<Territory> {
   private final Map<Territory, Set<Territory>> connections = new HashMap<>();
   // for fast lookup based on the string name of the territory
   private final Map<String, Territory> territoryLookup = new HashMap<>();
-  // null if the map is not grid-based
-  // otherwise, gridDimensions.length is the number of dimensions, and each element is the size of a
-  // dimension
+
+  /**
+   * Legacy option to support grid-based maps.
+   *
+   * @deprecated Do not use this property.
+   */
+  @SuppressWarnings("unused")
+  @Deprecated
+  @RemoveOnNextMajorRelease
   private int[] gridDimensions = null;
 
   GameMap(final GameData data) {
     super(data);
-  }
-
-  public void setGridDimensions(final int... gridDimensions) {
-    this.gridDimensions = gridDimensions;
-  }
-
-  Territory getTerritoryFromCoordinates(final int... coordinate) {
-    if (gridDimensions == null || !isCoordinateValid(coordinate)) {
-      return null;
-    }
-    int listIndex = coordinate[0];
-    int multiplier = 1;
-    for (int i = 1; i < gridDimensions.length; i++) {
-      multiplier *= gridDimensions[i - 1];
-      listIndex += coordinate[i] * multiplier;
-    }
-    return territories.get(listIndex);
-  }
-
-  private boolean isCoordinateValid(final int... coordinate) {
-    return coordinate.length == gridDimensions.length
-        && IntStream.range(0, coordinate.length)
-            .noneMatch(i -> coordinate[i] >= gridDimensions[i] || coordinate[i] < 0);
   }
 
   @VisibleForTesting
@@ -78,7 +60,7 @@ public class GameMap extends GameDataComponent implements Iterable<Territory> {
   }
 
   /** Bi-directional. T1 connects to T2, and T2 connects to T1. */
-  protected void addConnection(final Territory t1, final Territory t2) {
+  public void addConnection(final Territory t1, final Territory t2) {
     if (t1.equals(t2)) {
       throw new IllegalArgumentException("Cannot connect a territory to itself: " + t1);
     }
@@ -129,9 +111,7 @@ public class GameMap extends GameDataComponent implements Iterable<Territory> {
     if (cond == null) {
       return getNeighbors(territory);
     }
-    return connections
-        .getOrDefault(territory, Set.of())
-        .parallelStream()
+    return connections.getOrDefault(territory, Set.of()).parallelStream()
         .filter(cond)
         .collect(Collectors.toSet());
   }
@@ -235,21 +215,6 @@ public class GameMap extends GameDataComponent implements Iterable<Territory> {
             .collect(Collectors.toSet());
     searched.addAll(newFrontier);
     return getNeighborsIgnoreEnd(newFrontier, searched, distance - 1, cond);
-  }
-
-  Set<Territory> getNeighborsValidatingCanals(
-      final Territory territory,
-      final Predicate<Territory> neighborFilter,
-      final Collection<Unit> units,
-      final GamePlayer player) {
-    return getNeighbors(
-        territory,
-        player == null
-            ? neighborFilter
-            : neighborFilter.and(
-                t ->
-                    new MoveValidator(getData())
-                        .canAnyUnitsPassCanal(territory, t, units, player)));
   }
 
   /**

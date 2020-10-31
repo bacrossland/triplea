@@ -43,7 +43,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
 import lombok.Getter;
 import org.triplea.java.collections.CollectionUtils;
 import org.triplea.util.Tuple;
@@ -188,10 +187,10 @@ public abstract class AbstractProAi extends AbstractAi {
       final GameData dataCopy;
       try {
         data.acquireWriteLock();
-        dataCopy = GameDataUtils.cloneGameDataWithoutHistory(data, true);
-      } catch (final Throwable t) {
-        ProLogger.log(Level.WARNING, "Error trying to clone game data for simulating phases", t);
-        return;
+        dataCopy = GameDataUtils.cloneGameDataWithoutHistory(data, true).orElse(null);
+        if (dataCopy == null) {
+          return;
+        }
       } finally {
         data.releaseWriteLock();
       }
@@ -441,7 +440,7 @@ public abstract class AbstractProAi extends AbstractAi {
     final GamePlayer player = this.getGamePlayer();
     final BattleDelegate delegate = DelegateFinder.battleDelegate(data);
     final IBattle battle =
-        delegate.getBattleTracker().getPendingBattle(scrambleTo, false, BattleType.NORMAL);
+        delegate.getBattleTracker().getPendingBattle(scrambleTo, BattleType.NORMAL);
 
     // If battle is null then don't scramble
     if (battle == null) {
@@ -472,7 +471,7 @@ public abstract class AbstractProAi extends AbstractAi {
     final GamePlayer player = this.getGamePlayer();
     final BattleDelegate delegate = DelegateFinder.battleDelegate(data);
     final IBattle battle =
-        delegate.getBattleTracker().getPendingBattle(unitTerritory, false, BattleType.NORMAL);
+        delegate.getBattleTracker().getPendingBattle(unitTerritory, BattleType.NORMAL);
 
     // If battle is null then don't attack
     if (battle == null) {

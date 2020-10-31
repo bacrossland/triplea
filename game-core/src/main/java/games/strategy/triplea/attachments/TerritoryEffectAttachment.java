@@ -4,10 +4,10 @@ import com.google.common.collect.ImmutableMap;
 import games.strategy.engine.data.Attachable;
 import games.strategy.engine.data.DefaultAttachment;
 import games.strategy.engine.data.GameData;
-import games.strategy.engine.data.GameParseException;
 import games.strategy.engine.data.MutableProperty;
 import games.strategy.engine.data.TerritoryEffect;
 import games.strategy.engine.data.UnitType;
+import games.strategy.engine.data.gameparser.GameParseException;
 import games.strategy.triplea.Constants;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -19,6 +19,10 @@ import org.triplea.java.collections.IntegerMap;
 
 /** An attachment for instances of {@link TerritoryEffect}. */
 public class TerritoryEffectAttachment extends DefaultAttachment {
+
+  public static final String COMBAT_OFFENSE_EFFECT = "combatOffenseEffect";
+  public static final String COMBAT_DEFENSE_EFFECT = "combatDefenseEffect";
+
   private static final long serialVersionUID = 6379810228136325991L;
 
   private IntegerMap<UnitType> combatDefenseEffect = new IntegerMap<>();
@@ -190,14 +194,14 @@ public class TerritoryEffectAttachment extends DefaultAttachment {
   public Map<String, MutableProperty<?>> getPropertyMap() {
     return ImmutableMap.<String, MutableProperty<?>>builder()
         .put(
-            "combatDefenseEffect",
+            COMBAT_DEFENSE_EFFECT,
             MutableProperty.of(
                 this::setCombatDefenseEffect,
                 this::setCombatDefenseEffect,
                 this::getCombatDefenseEffect,
                 this::resetCombatDefenseEffect))
         .put(
-            "combatOffenseEffect",
+            COMBAT_OFFENSE_EFFECT,
             MutableProperty.of(
                 this::setCombatOffenseEffect,
                 this::setCombatOffenseEffect,

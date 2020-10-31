@@ -3,7 +3,13 @@ package games.strategy.engine.framework.map.download;
 import com.google.common.base.MoreObjects;
 import games.strategy.engine.ClientFileSystemHelper;
 import java.io.File;
+import java.util.Arrays;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import org.triplea.http.client.maps.listing.MapDownloadListing;
+import org.triplea.http.client.maps.listing.MapSkinListing;
 import org.triplea.util.Version;
 
 /**
@@ -11,6 +17,9 @@ import org.triplea.util.Version;
  * install it, version, etc..
  */
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Getter
+@Builder
+@AllArgsConstructor
 public final class DownloadFileDescription {
   @EqualsAndHashCode.Include private final String url;
   private final String description;
@@ -23,7 +32,7 @@ public final class DownloadFileDescription {
   enum DownloadType {
     MAP,
     MAP_SKIN,
-    MAP_TOOL
+    MAP_TOOL;
   }
 
   enum MapCategory {
@@ -45,53 +54,39 @@ public final class DownloadFileDescription {
     public String toString() {
       return outputLabel;
     }
+
+    private static MapCategory fromString(final String category) {
+      return Arrays.stream(values())
+          .filter(mapCategory -> mapCategory.outputLabel.equalsIgnoreCase(category))
+          .findAny()
+          .orElse(EXPERIMENTAL);
+    }
   }
 
-  DownloadFileDescription(
-      final String url,
-      final String description,
-      final String mapName,
-      final Version version,
-      final DownloadType downloadType,
-      final MapCategory mapCategory) {
-    this(url, description, mapName, version, downloadType, mapCategory, "");
+  public static DownloadFileDescription ofMapDownloadListing(
+      final MapDownloadListing mapDownloadListing) {
+    return DownloadFileDescription.builder()
+        .url(mapDownloadListing.getUrl())
+        .description(mapDownloadListing.getDescription())
+        .mapName(mapDownloadListing.getMapName())
+        .version(new Version(mapDownloadListing.getVersion()))
+        .downloadType(DownloadType.MAP)
+        .mapCategory(MapCategory.fromString(mapDownloadListing.getMapCategory()))
+        .img(mapDownloadListing.getPreviewImage())
+        .build();
   }
 
-  DownloadFileDescription(
-      final String url,
-      final String description,
-      final String mapName,
-      final Version version,
-      final DownloadType downloadType,
-      final MapCategory mapCategory,
-      final String img) {
-    this.url = url;
-    this.description = description;
-    this.mapName = mapName;
-    this.version = version;
-    this.downloadType = downloadType;
-    this.mapCategory = mapCategory;
-    this.img = img;
-  }
-
-  String getUrl() {
-    return url;
-  }
-
-  String getDescription() {
-    return description;
-  }
-
-  String getMapName() {
-    return mapName;
-  }
-
-  Version getVersion() {
-    return version;
-  }
-
-  MapCategory getMapCategory() {
-    return mapCategory;
+  public static DownloadFileDescription ofMapSkinListing(
+      final MapSkinListing skin, final String mapCategory) {
+    return DownloadFileDescription.builder()
+        .url(skin.getUrl())
+        .description(skin.getDescription())
+        .mapName(skin.getSkinName())
+        .version(new Version(skin.getVersion()))
+        .downloadType(DownloadType.MAP_SKIN)
+        .mapCategory(MapCategory.fromString(mapCategory))
+        .img(skin.getPreviewImageUrl())
+        .build();
   }
 
   boolean isMap() {
