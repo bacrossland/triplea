@@ -6,7 +6,9 @@ import static games.strategy.triplea.delegate.battle.BattleStepStrings.AIR_ATTAC
 import static games.strategy.triplea.delegate.battle.BattleStepStrings.AIR_DEFEND_NON_SUBS;
 import static games.strategy.triplea.delegate.battle.BattleStepStrings.ATTACKER_WITHDRAW;
 import static games.strategy.triplea.delegate.battle.BattleStepStrings.CASUALTIES_SUFFIX;
+import static games.strategy.triplea.delegate.battle.BattleStepStrings.CASUALTIES_WITHOUT_SPACE_SUFFIX;
 import static games.strategy.triplea.delegate.battle.BattleStepStrings.FIRE;
+import static games.strategy.triplea.delegate.battle.BattleStepStrings.FIRE_SUFFIX;
 import static games.strategy.triplea.delegate.battle.BattleStepStrings.FIRST_STRIKE_UNITS_FIRE;
 import static games.strategy.triplea.delegate.battle.BattleStepStrings.LAND_PARATROOPS;
 import static games.strategy.triplea.delegate.battle.BattleStepStrings.NAVAL_BOMBARDMENT;
@@ -90,6 +92,7 @@ public class BattleStepsTest {
     final UnitAttachment unitAttachment = mock(UnitAttachment.class);
     lenient().when(unit.getType()).thenReturn(unitType);
     lenient().when(unitType.getAttachment(UNIT_ATTACHMENT_NAME)).thenReturn(unitAttachment);
+    lenient().when(unit.getUnitAttachment()).thenReturn(unitAttachment);
     return new UnitAndAttachment(unit, unitAttachment);
   }
 
@@ -233,6 +236,21 @@ public class BattleStepsTest {
   public static List<String> generalFightStepStrings(
       final GamePlayer firingPlayer, final GamePlayer hitPlayer) {
     return List.of(firingPlayer.getName() + FIRE, hitPlayer.getName() + SELECT_CASUALTIES);
+  }
+
+  public static List<String> generalFightStepStrings(
+      final GamePlayer firingPlayer, final GamePlayer hitPlayer, final String groupName) {
+    if (groupName.equals("")) {
+      return List.of(
+          firingPlayer.getName() + FIRE_SUFFIX,
+          hitPlayer.getName() + SELECT_PREFIX + CASUALTIES_WITHOUT_SPACE_SUFFIX,
+          hitPlayer.getName() + REMOVE_PREFIX + CASUALTIES_WITHOUT_SPACE_SUFFIX);
+    } else {
+      return List.of(
+          firingPlayer.getName() + " " + groupName + FIRE_SUFFIX,
+          hitPlayer.getName() + SELECT_PREFIX + groupName + CASUALTIES_SUFFIX,
+          hitPlayer.getName() + REMOVE_PREFIX + groupName + CASUALTIES_SUFFIX);
+    }
   }
 
   public static List<String> firstStrikeFightStepStrings(
