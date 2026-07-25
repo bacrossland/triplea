@@ -2,10 +2,13 @@ package org.triplea.game.server;
 
 import static games.strategy.engine.framework.CliProperties.LOBBY_GAME_COMMENTS;
 import static games.strategy.engine.framework.CliProperties.LOBBY_URI;
+import static games.strategy.engine.framework.CliProperties.SERVER_PASSWORD;
 import static games.strategy.engine.framework.CliProperties.TRIPLEA_NAME;
 import static games.strategy.engine.framework.CliProperties.TRIPLEA_PORT;
 import static games.strategy.engine.framework.CliProperties.TRIPLEA_SERVER;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import games.strategy.engine.framework.GameRunner;
 import games.strategy.engine.framework.I18nResourceBundle;
 import games.strategy.engine.framework.map.file.system.loader.ZippedMapsExtractor;
@@ -27,6 +30,7 @@ public final class HeadlessGameRunner {
   private static final String BOT_NAME_ENV = "BOT_NAME";
   private static final String BOT_PORT_ENV = "BOT_PORT";
   private static final String BOT_LOBBY_URI_ENV = "BOT_LOBBY_URI";
+  private static final String BOT_PASSWORD_ENV = "BOT_PASSWORD";
 
   /**
    * Starts a new headless game server. This method will return before the headless game server
@@ -42,6 +46,13 @@ public final class HeadlessGameRunner {
     System.setProperty(GameRunner.TRIPLEA_HEADLESS, "true");
     System.setProperty(TRIPLEA_SERVER, "true");
 
+    final String password =
+        resolveServerPassword(System.getProperty(SERVER_PASSWORD), System.getenv(BOT_PASSWORD_ENV));
+    final boolean passwordProtected = !password.isEmpty();
+    if (passwordProtected) {
+      System.setProperty(SERVER_PASSWORD, password);
+    }
+
     if (!setSystemProperty(
         LOBBY_GAME_COMMENTS,
         BOT_COMMENT_ENV, //
@@ -54,12 +65,12 @@ public final class HeadlessGameRunner {
     if (!setSystemProperty(
         TRIPLEA_NAME,
         BOT_NAME_ENV, //
-        v ->
-            v.length() >= 7
-                && v.length() <= 21
-                && v.startsWith(GameRunner.BOT_GAME_HOST_NAME_PREFIX))) {
+        v -> isValidBotName(v, passwordProtected))) {
       log.error(
-          "Invalid value for bot name, must start with the word BOT and be length at least 7, under 22, value: {}");
+          passwordProtected
+              ? "Invalid value for bot name, must not be blank, value found: {}"
+              : "Invalid value for bot name, must start with the word BOT and be length at "
+                  + "least 7, under 22, value: {}");
       ExitStatus.FAILURE.exit();
     }
 
@@ -148,5 +159,21 @@ public final class HeadlessGameRunner {
     } catch (final NumberFormatException e) {
       return true;
     }
+  }
+
+  @VisibleForTesting
+  static String resolveServerPassword(
+      final String systemPropertyValue, final String envVarValue) {
+    return systemPropertyValue != null ? systemPropertyValue : Strings.nullToEmpty(envVarValue);
+  }
+
+  @VisibleForTesting
+  static boolean isValidBotName(final String name, final boolean passwordProtected) {
+    if (passwordProtected) {
+      return !Strings.isNullOrEmpty(name);
+    }
+    return name.length() >= 7
+        && name.length() <= 21
+        && name.startsWith(GameRunner.BOT_GAME_HOST_NAME_PREFIX);
   }
 }
