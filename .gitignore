@@ -28,4 +28,5 @@ build/
 out/
 
 CLAUDE.local.md
+.claude/worktrees/
 
