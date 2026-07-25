@@ -3,6 +3,7 @@ package org.triplea.game.server;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static games.strategy.engine.framework.CliProperties.LOBBY_URI;
+import static games.strategy.engine.framework.CliProperties.SERVER_PASSWORD;
 
 import games.strategy.engine.framework.startup.LobbyWatcherThread;
 import games.strategy.engine.framework.startup.login.ClientLoginValidator;
@@ -32,7 +33,10 @@ public class HeadlessServerSetupModel {
     serverModel
         .getMessenger()
         .setLoginValidator(
-            ClientLoginValidator.builder().serverMessenger(serverModel.getMessenger()).build());
+            ClientLoginValidator.builder()
+                .password(System.getProperty(SERVER_PASSWORD))
+                .serverMessenger(serverModel.getMessenger())
+                .build());
     Optional.ofNullable(serverModel.getLobbyWatcherThread())
         .map(LobbyWatcherThread::getLobbyWatcher)
         .ifPresent(lobbyWatcher -> lobbyWatcher.setGameSelectorModel(gameSelectorModel));
