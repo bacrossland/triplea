@@ -68,7 +68,7 @@ public final class HeadlessGameRunner {
         v -> isValidBotName(v, passwordProtected))) {
       log.error(
           passwordProtected
-              ? "Invalid value for bot name, must not be blank, value found: {}"
+              ? "Invalid value for bot name, must not be blank"
               : "Invalid value for bot name, must start with the word BOT and be length at "
                   + "least 7, under 22, value: {}");
       ExitStatus.FAILURE.exit();
@@ -162,15 +162,17 @@ public final class HeadlessGameRunner {
   }
 
   @VisibleForTesting
-  static String resolveServerPassword(
-      final String systemPropertyValue, final String envVarValue) {
+  static String resolveServerPassword(final String systemPropertyValue, final String envVarValue) {
     return systemPropertyValue != null ? systemPropertyValue : Strings.nullToEmpty(envVarValue);
   }
 
   @VisibleForTesting
   static boolean isValidBotName(final String name, final boolean passwordProtected) {
+    if (Strings.isNullOrEmpty(name)) {
+      return false;
+    }
     if (passwordProtected) {
-      return !Strings.isNullOrEmpty(name);
+      return true;
     }
     return name.length() >= 7
         && name.length() <= 21

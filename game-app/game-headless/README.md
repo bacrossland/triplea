@@ -55,16 +55,18 @@ Below script opens firewall port 4000, downloads latest bot image & starts it.
 
 ```bash
 BOT_NAME=....change_me.....
-# Optional: set to require players to enter a password before they can join.
-# When set, the "BOT" name-prefix convention below is not enforced.
-BOT_PASSWORD=....optional, leave blank for a public, unlocked bot.....
+# Optional: set to require players to enter a password before they can join; when set, the
+# bot name no longer needs to start with "Bot" and be at least 7 characters long. Note that
+# a non-"Bot"-prefixed name also means the lobby will not render this game with its special
+# "bot" (italic) styling in the game list.
+BOT_PASSWORD=....optional_leave_blank_for_a_public_unlocked_bot.....
 
 sudo ufw allow 4000
 docker pull ghcr.io/triplea-game/bot:latest
 MAPS_FOLDER=/home/$USER/triplea/downloadedMaps
 docker run \
     --env BOT_NAME=$BOT_NAME \
-    --env BOT_PASSWORD=$BOT_PASSWORD \
+    --env BOT_PASSWORD="$BOT_PASSWORD" \
     --env LOBBY_URI=https://prod.triplea-game.org \
     -v $MAPS_FOLDER:/downloadedMaps \
     -p 4000:4000 \

@@ -26,7 +26,6 @@ CMD java \
    -Xmx$BOT_MAX_MEMORY \
    -Xss$BOT_XSS \
    -Dtriplea.name=$BOT_NAME \
-   -Dtriplea.server.password=$BOT_PASSWORD \
    -Dtriplea.port=$BOT_PORT_NUMBER \
    -Dtriplea.lobby.uri=$LOBBY_URI \
    -Dtriplea.exit.on.game.end=$EXIT_ON_GAME_END \

@@ -40,7 +40,9 @@ class HeadlessGameRunnerTest {
 
   @Test
   void systemPropertyWinsOverEnvVarWhenBothSet() {
-    assertThat(HeadlessGameRunner.resolveServerPassword("fromSystemProperty", "fromEnvVar"), is("fromSystemProperty"));
+    assertThat(
+        HeadlessGameRunner.resolveServerPassword("fromSystemProperty", "fromEnvVar"),
+        is("fromSystemProperty"));
   }
 
   @Test

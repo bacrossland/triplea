@@ -19,10 +19,11 @@ Startup sequence:
 | Property | Description |
 |----------|-------------|
 | `MAPS_FOLDER` (env) | Path to game maps directory |
-| `triplea.name` | Bot name (must start with "Bot", min 7 chars) |
+| `triplea.name` | Bot name (must start with "Bot", min 7 chars, unless `triplea.server.password` is set) |
 | `triplea.port` | Server port (> 0) |
 | `triplea.lobby.uri` | Lobby server URL |
 | `triplea.server` | Set to "true" for server mode |
+| `triplea.server.password` (`BOT_PASSWORD` env) | Optional. When set, players must enter this password to join, and the `triplea.name` prefix rule is relaxed to only require a non-blank name |
 
 ## Package Structure
 
